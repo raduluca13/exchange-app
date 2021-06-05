@@ -4,27 +4,26 @@ import './CurrencyDropdown.css';
 
 export interface CurrencyDropdownProps {
     currencies: Currency[];
-    defaultValue: string;
+    selectedValue: string;
     onChangeSelection: ChangeEventHandler<HTMLSelectElement>
 }
 
 const CurrencyDropdown = (props: CurrencyDropdownProps) => {
-    const { currencies, onChangeSelection, defaultValue } = props
-
-    const [currencyList, setCurrencyList] = useState<string[]>([])
+    const { currencies, onChangeSelection, selectedValue } = props
     const [dropdownOptions, setDropdownOptions] = useState<JSX.Element[]>([])
 
     useEffect(() => {
         if (currencies.length) {
-            const currencyOptions = currencies.map((currency, index) => <option key={index + currency}> {currency} </option>)
-            setCurrencyList(currencies)
+            const currencyOptions = currencies.map((currency, index) => <option value={currency} key={index + currency}> {currency} </option>)
             setDropdownOptions(currencyOptions)
         }
     }, [currencies])
 
-    return <select defaultValue={defaultValue} className="currency-dropdown" onChange={onChangeSelection}>
-        {dropdownOptions}
-    </select>
+    return (
+        <select value={selectedValue} className="currency-dropdown" onChange={onChangeSelection}>
+            {dropdownOptions}
+        </select>
+    )
 }
 
 

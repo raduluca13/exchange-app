@@ -1,5 +1,5 @@
 import React, {  } from 'react';
-import { AccountBalance } from '../currency-input-container/CurrencyInputContainer';
+import { AccountBalance } from '../../ExchangeContainer';
 import './CurrencyBalance.css'
 
 const CurrencyBalance = (props: AccountBalance) => {
