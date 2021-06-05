@@ -1,14 +1,14 @@
 import React, { Fragment, useState, useCallback, useEffect, createContext } from 'react';
 import CurrencyInputContainer, { } from './components/currency-input-container/CurrencyInputContainer';
 import CurrencyInput from './components/currency-input/CurrencyInput';
-import './ExchangeContainer.css';
+import styles from './ExchangeContainer.module.css';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 
-export interface AccountBalance {
+export interface Account {
     currency: Currency;
     amount: string,
-    balanceIndex: number
+    adjustment?: string,
 }
 
 export enum ArrowDirection {
@@ -36,56 +36,53 @@ const initialStateCurrencies = [
 ]
 
 const initialStateBalances = [
-    { currency: Currency.RON, amount: '1000', balanceIndex: 0 },
-    { currency: Currency.EURO, amount: '2000', balanceIndex: 1 },
-    { currency: Currency.GPB, amount: '3000', balanceIndex: 2 },
-    { currency: Currency.USD, amount: '4000', balanceIndex: 3 },
+    { currency: Currency.RON, amount: '1000' },
+    { currency: Currency.EURO, amount: '2000' },
+    { currency: Currency.GPB, amount: '3000' },
+    { currency: Currency.USD, amount: '4000' },
 ]
 
 const ExchangeContainer = () => {
     // const { ExchangeContextProvider, ExchangeContextConsumer } = createContext({})
+    const { inputsContainer, confirmationButton, currencyToggler, svg, h3 } = styles
     const [liveFeed, setLiveFeed] = useState('') // TODO
-    const [currencies, setCurrencies] = useState<Currency[]>(initialStateCurrencies)
-    const [accountBalances, setAccountBalances] = useState<AccountBalance[]>(initialStateBalances)
+
     const [title, setTitle] = useState<ExchangeType>(ExchangeType.SELL)
     const [arrowDirection, setArrowDirection] = useState<ArrowDirection>(ArrowDirection.DOWN)
 
+    const [currencies, setCurrencies] = useState<Currency[]>(initialStateCurrencies)
+    const [accounts, setAccounts] = useState<Account[]>(initialStateBalances)
+
+    const [currencyToExtractFrom, setCurrencyToExtractFrom] = useState(Currency.RON)
+    const [currencyToAddTo, setCurrencyToAddTo] = useState(Currency.EURO)
+    const [accountInputToExtractFrom, setAccountInputToExtractFrom] = useState({
+        currencies: currencies,
+        account: accounts[accounts.findIndex(balance => balance.currency === currencyToExtractFrom)],
+
+    })
+    const [accountInputToAddTo, setAccountInputToAddTo] = useState({
+        currencies: currencies,
+        account: accounts[accounts.findIndex(balance => balance.currency === currencyToAddTo)],
+    })
+
     const onExchangeCurrency = useCallback(() => {
-        // console.log({ accountBalances },)
-    }, [accountBalances])
+        // console.log({ accounts },)
+    }, [accounts])
 
-    const onChangeAccount = (currency: string, previousBalanceIndex: number) => {
-        const newBalances = [...accountBalances]
-        const newBalanceIndex = newBalances.findIndex(balance => balance.currency === currency)
+    const onChangeAccount = (newCurrency: Currency, oldCurrency: Currency) => {
+        if (oldCurrency === currencyToExtractFrom) {
+            setCurrencyToExtractFrom(newCurrency)
+        }
 
-        setInputs(inputs => {
-            const newInputs = [...inputs]
-            const replacedInputIndex = inputs.findIndex(input => input.accountBalance.balanceIndex === previousBalanceIndex)
-
-            newInputs[replacedInputIndex].accountBalance = accountBalances[newBalanceIndex]
-
-            return newInputs
-        })
+        if (oldCurrency === currencyToAddTo) {
+            setCurrencyToAddTo(newCurrency)
+        }
     }
 
-    const [inputs, setInputs] = useState([
-        {
-            currencies: currencies,
-            accountBalance: accountBalances[0],
-            onChangeAccount
-        },
-        {
-            currencies: currencies,
-            accountBalance: accountBalances[1],
-            onChangeAccount
-        }
-    ])
-    // useEffect(() => {
-    //     if (!accountBalances.length) {
-    //         setAccountBalances(currencies.map(currency => { return { currency, amount: '15' } }))
-    //     }
-    // }, [accountBalances, currencies])
-
+    const onChangeValue = (amount: string, selectedCurrency: string) => {
+        const balance = accounts[accounts.findIndex(balance => balance.currency === selectedCurrency)]
+        console.log({ balance })
+    }
 
     const toggleArrow = useCallback(() => {
         if (arrowDirection === ArrowDirection.UP) {
@@ -99,6 +96,28 @@ const ExchangeContainer = () => {
         }
     }, [arrowDirection])
 
+    useEffect(() => {
+        const newCurrencies = currencies.filter(currency => currency !== currencyToAddTo);
+        const account = accounts[accounts.findIndex(balance => balance.currency === currencyToExtractFrom)];
+        const newAccountToExtractFrom = { currencies: newCurrencies, account }
+        console.log({ newAccountToExtractFrom })
+
+        setAccountInputToExtractFrom(newAccountToExtractFrom)
+        const currenciesForOtherInput = currencies.filter(currency => currency !== currencyToExtractFrom);
+        setAccountInputToAddTo(accountToAddTo => { return { ...accountToAddTo, currencies: currenciesForOtherInput } });
+    }, [currencyToExtractFrom])
+
+    useEffect(() => {
+        const newCurrencies = currencies.filter(currency => currency !== currencyToExtractFrom);
+        const account = accounts[accounts.findIndex(balance => balance.currency === currencyToAddTo)];
+        const newAccountToAddTo = { currencies: newCurrencies, account }
+        console.log({ newAccountToAddTo })
+
+        setAccountInputToAddTo(newAccountToAddTo)
+        const currenciesForOtherInput = currencies.filter(currency => currency !== currencyToAddTo);
+        setAccountInputToExtractFrom(accountToExtractFrom => { return { ...accountToExtractFrom, currencies: currenciesForOtherInput } });
+    }, [currencyToAddTo])
+
     return <Fragment>
         {/* TITLE: SELL / BUY */}
         <h3>
@@ -108,17 +127,19 @@ const ExchangeContainer = () => {
         {/* Market order live feed  */}
 
 
-        <div className="inputs-container">
-            <CurrencyInputContainer {...inputs[0]} />
-            <div className='currency-toggler' onClick={toggleArrow}>
+        <div className={inputsContainer}>
+            <CurrencyInputContainer {...accountInputToExtractFrom} onChangeAccount={onChangeAccount} onChangeValue={onChangeValue} />
+
+            <div className={currencyToggler} onClick={toggleArrow}>
                 {(arrowDirection === ArrowDirection.DOWN) && <ArrowDownwardIcon color="primary"></ArrowDownwardIcon>}
                 {(arrowDirection === ArrowDirection.UP) && <ArrowUpwardIcon color="primary"></ArrowUpwardIcon>}
             </div>
-            <CurrencyInputContainer {...inputs[1]} />
+
+            <CurrencyInputContainer {...accountInputToAddTo} onChangeAccount={onChangeAccount} onChangeValue={onChangeValue} />
         </div>
 
         {/*  Confirmation button*/}
-        <button className='confirmation-button' onClick={onExchangeCurrency}>{title} currency1 for currency2</button>
+        <button className={confirmationButton} onClick={onExchangeCurrency}>{title} currency1 for currency2</button>
     </Fragment>
 }
 

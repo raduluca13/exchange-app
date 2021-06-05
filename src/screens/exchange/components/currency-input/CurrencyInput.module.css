@@ -1,0 +1,24 @@
+.currencyInputContainer {
+    display: grid;
+    grid-template-areas: 
+    "input label"
+    "error nothing";
+}
+
+.currencyInput {
+    display: block;
+    grid-area: "input";
+    height: 3rem;
+    text-align: end;
+    /* direction: rtl */
+}
+
+.currencyInputLabel {
+    align-self: center;
+    grid-area: "label";
+}
+
+.currencyInputError {
+    grid-area: "error";
+    color: red;
+}

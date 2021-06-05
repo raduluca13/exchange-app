@@ -1,22 +1,24 @@
 import React, { ChangeEventHandler } from 'react';
-import './CurrencyInput.css'
+import styles from './CurrencyInput.module.css'
 
 export interface CurrencyInputProps {
+    error: string;
     selectedCurrencyLabel: string;
     selectedValue: string;
     onChangeAmount: ChangeEventHandler<HTMLInputElement>
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-    const { selectedCurrencyLabel, selectedValue, onChangeAmount } = props
+    const { currencyInputContainer, currencyInput, currencyInputLabel, currencyInputError } = styles
+    const { error, selectedCurrencyLabel, selectedValue, onChangeAmount } = props
 
-
-    return <div className='currency-input__container'>
+    return <div className={currencyInputContainer}>
         <input
-            className='currency-input__input'
+            className={currencyInput}
             value={selectedValue}
             onChange={onChangeAmount} />
-        <label className='currency-input__label'>{selectedCurrencyLabel}</label>
+        <label className={currencyInputLabel}>{selectedCurrencyLabel}</label>
+        {error.length > 0 && <span className={currencyInputError}>{error}</span>}
     </div>
 }
 

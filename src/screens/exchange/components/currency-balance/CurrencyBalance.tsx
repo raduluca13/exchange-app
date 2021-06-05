@@ -1,11 +1,14 @@
-import React, {  } from 'react';
-import { AccountBalance } from '../../ExchangeContainer';
-import './CurrencyBalance.css'
+import React, { } from 'react';
+import { Account } from '../../ExchangeContainer';
 
-const CurrencyBalance = (props: AccountBalance) => {
+import styles from './CurrencyBalance.module.css'
+
+
+const CurrencyBalance = (props: Account) => {
+    const { currencyBalance } = styles
     const { amount, currency } = props
 
-    return <div className="currency-balance">
+    return <div className={currencyBalance}>
         {amount} {currency}
     </div>
 }

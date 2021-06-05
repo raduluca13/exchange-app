@@ -2,23 +2,32 @@ import React, { useState, useCallback, useEffect } from 'react'
 import CurrencyBalance from '../currency-balance/CurrencyBalance'
 import CurrencyDropdown from '../currency-dropdown/CurrencyDropdown'
 import CurrencyInput from '../currency-input/CurrencyInput'
-import './CurrencyInputContainer.css';
-import { AccountBalance, Currency } from '../../ExchangeContainer';
+import styles from './CurrencyInputContainer.module.css';
+import { Account, Currency } from '../../ExchangeContainer';
 
 export interface CurrencyInputContainerProps {
     currencies: Currency[];
-    accountBalance: AccountBalance;
-    onChangeAccount: (currency: string, previousBalanceIndex: number) => void
+    account: Account;
+    onChangeAccount: (newCurrency: Currency, oldCurrency: Currency) => void;
+    onChangeValue: (amount: string, selectedCurrency: string) => void
 }
 
 const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
-    const { currencies, accountBalance, onChangeAccount } = props
-    const [selectedCurrency, setSelectedCurrency] = useState<string>(accountBalance.currency)
-    const [selectedAmount, setSelectedAmount] = useState('0');
+    const { currencyInputContainer } = styles
+    const { currencies, account, onChangeAccount, onChangeValue } = props
+    const [selectedCurrency, setSelectedCurrency] = useState<Currency>(account.currency)
+    const [selectedAmount, setSelectedAmount] = useState('');
+    const [inputError, setInputError] = useState('');
 
     useEffect(() => {
-        onChangeAccount(selectedCurrency, accountBalance.balanceIndex)
-    }, [selectedCurrency, onChangeAccount])
+        if (selectedCurrency !== account.currency) {
+            onChangeAccount(selectedCurrency, account.currency)
+        }
+    }, [selectedCurrency])
+
+    useEffect(() => {
+        onChangeValue(selectedAmount, selectedCurrency)
+    }, [selectedAmount])
 
     const onChangeSelectedCurrency = (event: any) => {
         setSelectedCurrency(event.target.value)
@@ -40,22 +49,29 @@ const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
         const maxTwoDigits = hasDelimiter && stringValue.length - indexOfDelimiter - 1 <= 2
         if (!hasDelimiter || hasDelimiterOnlyOnLastPosition || maxTwoDigits) {
             setSelectedAmount(stringValue)
+
+            if (+account.amount < numberValue) {
+                setInputError('Amount exceeded')
+            } else {
+                setInputError('')
+            }
             return
         }
     }
 
-    return <div className="currency-input-container">
+    return <div className={currencyInputContainer}>
         <CurrencyDropdown
             currencies={currencies}
             selectedValue={selectedCurrency}
             onChangeSelection={onChangeSelectedCurrency} />
 
         <CurrencyInput
+            error={inputError}
             selectedValue={selectedAmount}
             onChangeAmount={onChangeAmount}
             selectedCurrencyLabel={selectedCurrency} />
 
-        <CurrencyBalance {...accountBalance} />
+        <CurrencyBalance {...account} />
     </div>
 }
 

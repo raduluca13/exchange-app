@@ -1,4 +1,4 @@
-.inputs-container {
+.inputsContainer {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -6,13 +6,13 @@
     gap: 2rem;
 }
 
-.confirmation-button {
+.confirmationButton {
     height: 2rem;
     width: 80vw;
     margin: 1rem;
 }
 
-.currency-toggler {
+.currencyToggler {
     position: absolute;
     width: 3rem;
     height: 3rem;
