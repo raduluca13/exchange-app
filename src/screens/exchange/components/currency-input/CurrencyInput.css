@@ -1,0 +1,15 @@
+.currency-input__container {
+    display: inline-flex;
+    align-items: center;
+}
+
+.currency-input__input {
+    display: block;
+    height: 3rem;
+    text-align: end;
+    /* direction: rtl */
+}
+
+.currency-input__label {
+
+}

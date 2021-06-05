@@ -1,0 +1,11 @@
+.currency-input-container {
+     /* TODO - these styles should go to container */
+    /* width: 80vw; */
+    /* margin: 1rem 0rem; */
+    display: grid;
+    grid-gap: 2vw;
+    grid-template-areas:  
+    "dropdown  input"
+    "balance  freespace";
+    border: 1px solid yellowgreen;
+}
