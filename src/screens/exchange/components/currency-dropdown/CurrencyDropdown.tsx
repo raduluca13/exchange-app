@@ -1,8 +1,9 @@
 import React, { useState, useEffect, ChangeEventHandler } from 'react';
+import { Currency } from '../../ExchangeContainer';
 import './CurrencyDropdown.css';
 
 export interface CurrencyDropdownProps {
-    currencies: string[];
+    currencies: Currency[];
     defaultValue: string;
     onChangeSelection: ChangeEventHandler<HTMLSelectElement>
 }
@@ -12,8 +13,6 @@ const CurrencyDropdown = (props: CurrencyDropdownProps) => {
 
     const [currencyList, setCurrencyList] = useState<string[]>([])
     const [dropdownOptions, setDropdownOptions] = useState<JSX.Element[]>([])
-
-    // const [currency, setCurrency] = useState<string>('');
 
     useEffect(() => {
         if (currencies.length) {

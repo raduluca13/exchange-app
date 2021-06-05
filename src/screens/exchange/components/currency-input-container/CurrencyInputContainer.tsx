@@ -1,36 +1,51 @@
-import React, { useState, Fragment, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import CurrencyBalance from '../currency-balance/CurrencyBalance'
 import CurrencyDropdown from '../currency-dropdown/CurrencyDropdown'
 import CurrencyInput from '../currency-input/CurrencyInput'
 import './CurrencyInputContainer.css';
 import PropTypes from 'prop-types';
+import { Currency } from '../../ExchangeContainer';
 
 export interface CurrencyInputContainerProps {
-    currencies: string[];
+    currencies: Currency[];
     accountBalances: AccountBalance[]
     // exchangedValues: number[]
 }
 
 export interface AccountBalance {
-    currency: string;
-    amount: number
+    currency: Currency;
+    amount: string,
+    // balanceIndex: number 
 }
 
 const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
     const { currencies, accountBalances } = props
-    const [selectedCurrency, setSelectedCurrency] = useState<string>('RON')
-    const [selectedAmount, setSelectedAmount] = useState('');
+    const [selectedCurrency, setSelectedCurrency] = useState<string>(Currency.RON)
+    const [selectedAmount, setSelectedAmount] = useState('0');
+    const [accountBalance, setAccountBalance] = useState<AccountBalance>({ amount: '0', currency: Currency.RON })
+
+    useEffect(() => {
+        console.log({ selectedCurrency }, { accountBalances })
+        if (selectedCurrency) {
+            const balanceIndex = accountBalances.findIndex(balance => balance.currency === selectedCurrency)
+            const balance = {
+                currency: accountBalances[balanceIndex].currency,
+                amount: accountBalances[balanceIndex].amount
+            }
+            setAccountBalance(balance)
+        }
+    }, [accountBalances, selectedCurrency])
+
+    useEffect(() => {
+        console.log({ accountBalance })
+    }, [accountBalance])
 
     const onChangeSelectedCurrency = (event: any) => {
-        const selectedValue = event.target.value;
-        if (isNaN(selectedValue)) {
-            return
-        }
-
-        setSelectedCurrency(selectedValue)
+        setSelectedCurrency(event.target.value)
     }
 
     const onChangeAmount = (event: any) => {
+
         const stringValue = event.target.value.trim()
         const numberValue = +stringValue
         const isNumber = !isNaN(numberValue)
@@ -62,7 +77,7 @@ const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
             onChangeAmount={onChangeAmount}
             selectedCurrency={selectedCurrency} />
 
-        <CurrencyBalance />
+        <CurrencyBalance {...accountBalance} />
     </div>
 }
 
