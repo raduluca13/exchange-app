@@ -1,3 +1,8 @@
+.currencyBalanceContainer {
+    background-color: rgb(255 255 254);
+}
+
 .currencyBalance {
-    border: 1px solid blue;
+    color: rgb(163 171 178);
+    font-size: 0.75rem;
 }

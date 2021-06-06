@@ -21,9 +21,11 @@ const CurrencyDropdown = (props: CurrencyDropdownProps) => {
     }, [currencies])
 
     return (
-        <select value={selectedValue} className={currencyDropdown} onChange={onChangeSelection}>
-            {dropdownOptions}
-        </select>
+        <div className={currencyDropdown}>
+            <select value={selectedValue} onChange={onChangeSelection}>
+                {dropdownOptions}
+            </select>
+        </div>
     )
 }
 

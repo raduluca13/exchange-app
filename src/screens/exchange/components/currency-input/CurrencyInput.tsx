@@ -9,16 +9,21 @@ export interface CurrencyInputProps {
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-    const { currencyInputContainer, currencyInput, currencyInputLabel, currencyInputError } = styles
+    const { currencyInputContainer, currencyInput, currencyInputLabel, currencyInputError, currencyInputTopRow, currencyInputBottomRow } = styles
     const { error, selectedCurrencyLabel, selectedValue, onChangeAmount } = props
-
+    // console.log({ selectedValue })
     return <div className={currencyInputContainer}>
-        <input
-            className={currencyInput}
-            value={selectedValue}
-            onChange={onChangeAmount} />
-        <label className={currencyInputLabel}>{selectedCurrencyLabel}</label>
-        {error.length > 0 && <span className={currencyInputError}>{error}</span>}
+        <div className={currencyInputTopRow}>
+            <input
+                className={currencyInput}
+                value={selectedValue}
+                onChange={onChangeAmount} />
+            <label className={currencyInputLabel}>{selectedCurrencyLabel}</label>
+
+        </div>
+        <div className={currencyInputBottomRow}>
+            {error.length > 0 && <span className={currencyInputError}>{error}</span>}
+        </div>
     </div>
 }
 

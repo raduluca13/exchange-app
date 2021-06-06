@@ -1,17 +1,18 @@
 import React from 'react';
-import './App.css';
+import styles from './App.module.css';
 import ExchangeContainer from './screens/exchange/ExchangeContainer';
 
 const App = () => {
+  const { app, appHeader, mainSection } = styles
   const title = 'Exchange App';
 
   return (
-    <div className="App" >
-      <header className="App-header">
+    <div className={app}>
+      <header className={appHeader}>
         {title}
       </header>
-      <section className="main-section">
-        <ExchangeContainer/>
+      <section className={mainSection}>
+        <ExchangeContainer />
       </section>
     </div >
   );

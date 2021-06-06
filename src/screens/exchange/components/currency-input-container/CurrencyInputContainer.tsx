@@ -1,39 +1,39 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import CurrencyBalance from '../currency-balance/CurrencyBalance'
 import CurrencyDropdown from '../currency-dropdown/CurrencyDropdown'
 import CurrencyInput from '../currency-input/CurrencyInput'
 import styles from './CurrencyInputContainer.module.css';
-import { Account, Currency } from '../../ExchangeContainer';
+import { Account, AdjustmentType, Currency } from '../../ExchangeContainer';
 
 export interface CurrencyInputContainerProps {
+    index: number;
     currencies: Currency[];
     account: Account;
     onChangeAccount: (newCurrency: Currency, oldCurrency: Currency) => void;
-    onChangeValue: (amount: string, selectedCurrency: string) => void
+    onChangeValue: (amount: string, currency: Currency, index: number) => void
 }
 
 const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
     const { currencyInputContainer } = styles
-    const { currencies, account, onChangeAccount, onChangeValue } = props
-    const [selectedCurrency, setSelectedCurrency] = useState<Currency>(account.currency)
-    const [selectedAmount, setSelectedAmount] = useState('');
+    const { index, currencies, account, onChangeAccount, onChangeValue } = props
+
+    const amountMemo = useMemo(() => account.amount, [account.amount])
+    const inputMemo = useMemo(() => {
+        return {
+            currency: account.currency,
+            adjustment: account.adjustment,
+            adjustmentType: account.adjustmentType
+        }
+    }, [account.currency, account.adjustment, account.adjustmentType])
+
     const [inputError, setInputError] = useState('');
 
-    useEffect(() => {
-        if (selectedCurrency !== account.currency) {
-            onChangeAccount(selectedCurrency, account.currency)
-        }
-    }, [selectedCurrency])
+    const onChangeSelectedCurrency = useCallback((event: any) => {
+        const newCurrency = event.target.value
+        onChangeAccount(newCurrency, account.currency)
+    }, [inputMemo])
 
-    useEffect(() => {
-        onChangeValue(selectedAmount, selectedCurrency)
-    }, [selectedAmount])
-
-    const onChangeSelectedCurrency = (event: any) => {
-        setSelectedCurrency(event.target.value)
-    }
-
-    const onChangeAmount = (event: any) => {
+    const onChangeAmount = useCallback((event: any) => {
         const stringValue = event.target.value.trim()
         const numberValue = +stringValue
         const isNumber = !isNaN(numberValue)
@@ -48,28 +48,27 @@ const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
 
         const maxTwoDigits = hasDelimiter && stringValue.length - indexOfDelimiter - 1 <= 2
         if (!hasDelimiter || hasDelimiterOnlyOnLastPosition || maxTwoDigits) {
-            setSelectedAmount(stringValue)
-
-            if (+account.amount < numberValue) {
+            onChangeValue(stringValue, inputMemo.currency, index)
+            if (+amountMemo < numberValue && inputMemo.adjustmentType === AdjustmentType.NEGATIVE) {
                 setInputError('Amount exceeded')
             } else {
                 setInputError('')
             }
             return
         }
-    }
+    }, [amountMemo, inputMemo])
 
     return <div className={currencyInputContainer}>
         <CurrencyDropdown
             currencies={currencies}
-            selectedValue={selectedCurrency}
+            selectedValue={inputMemo.currency}
             onChangeSelection={onChangeSelectedCurrency} />
 
         <CurrencyInput
             error={inputError}
-            selectedValue={selectedAmount}
+            selectedValue={inputMemo.adjustment}
             onChangeAmount={onChangeAmount}
-            selectedCurrencyLabel={selectedCurrency} />
+            selectedCurrencyLabel={inputMemo.currency} />
 
         <CurrencyBalance {...account} />
     </div>

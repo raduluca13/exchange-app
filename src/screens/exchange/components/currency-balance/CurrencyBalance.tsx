@@ -1,15 +1,27 @@
-import React, { } from 'react';
-import { Account } from '../../ExchangeContainer';
+import React, { useState, useEffect } from 'react';
+import { Account, AdjustmentType } from '../../ExchangeContainer';
 
 import styles from './CurrencyBalance.module.css'
 
 
 const CurrencyBalance = (props: Account) => {
-    const { currencyBalance } = styles
-    const { amount, currency } = props
+    const { currencyBalanceContainer, currencyBalance } = styles
+    const { amount, currency, adjustment, adjustmentType } = props
 
-    return <div className={currencyBalance}>
-        {amount} {currency}
+    const [adjustmentSign, setAdjustmentSign] = useState('')
+
+    useEffect(() => {
+        if (adjustmentType === AdjustmentType.NEGATIVE) {
+            setAdjustmentSign("-")
+        }
+        if (adjustmentType === AdjustmentType.POSITIVE) {
+            setAdjustmentSign("+")
+        }
+    }, [adjustmentType])
+
+
+    return <div className={currencyBalanceContainer}>
+        <span className={currencyBalance}>{amount} {currency} {adjustmentSign} {adjustment}</span>
     </div>
 }
 

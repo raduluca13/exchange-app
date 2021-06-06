@@ -1,24 +1,41 @@
 .currencyInputContainer {
-    display: grid;
-    grid-template-areas: 
-    "input label"
-    "error nothing";
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.currencyInput, .currencyInputLabel {
+    display: block;
+    color: rgb(213 213 217);
+    font-size: 1rem;
 }
 
 .currencyInput {
-    display: block;
-    grid-area: "input";
+    /* TODO - remove what is not needed as it s duplicated in dropdown select. should go to a mixin :( add a css preprocessor */
+    -webkit-appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+    -o-appearance: none;
+    appearance: none;
+    outline: none;
+    border: 0px;
+    box-shadow: none;
+
     height: 3rem;
     text-align: end;
     /* direction: rtl */
+    caret-color: #3683ed;
 }
 
-.currencyInputLabel {
-    align-self: center;
-    grid-area: "label";
+.currencyInputTopRow, .currencyInputBottomRow {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-end;
 }
 
 .currencyInputError {
-    grid-area: "error";
     color: red;
+    justify-self: end;
 }

@@ -1,11 +1,15 @@
 .currencyInputContainer {
-     /* TODO - these styles should go to container */
-    /* width: 80vw; */
-    /* margin: 1rem 0rem; */
+    width: 100%;
+    padding: 1rem .75rem;
+
     display: grid;
-    grid-gap: 2vw;
-    grid-template-areas:  
-    "dropdown  input"
-    "balance  freespace";
-    border: 1px solid yellowgreen;
+    grid-template-rows: 2fr 1fr;
+    grid-template-columns: 1fr 2fr;
+    /* "dropdown  input" */
+    /* "balance  freespace"; */
+
+    background-color: rgb(255 255 254);
+
+    border: 0px solid white;
+    border-radius: 1.5rem;
 }
