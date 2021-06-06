@@ -100,6 +100,7 @@ const ExchangeContainer = () => {
     const [arrowDirection, setArrowDirection] = useState<ArrowDirection>(initialExchange.direction)
     const [currencies, setCurrencies] = useState<Currency[]>(initialStateCurrencies)
     const [accounts, setAccounts] = useState<Account[]>(initialStateBalances)
+    const [validInputIndexes, setValidInputIndexes] = useState([0, 1]);
 
     const ratesFetcher = async () => {
         // console.log('- calling API -', Date.now())
@@ -212,13 +213,33 @@ const ExchangeContainer = () => {
         })
     }, [accounts])
 
-    const onValidationResult = useCallback((hasError: boolean) => {
-        if(hasError){
-            setExchangeIsValid(false);
-        } else {
+    const onValidationResult = useCallback((hasError: boolean, inputIndex: number) => {
+        setValidInputIndexes(validInputIndexes => {
+            const oldValidInputIndexes = [...validInputIndexes]
+            const oldIndex = oldValidInputIndexes.findIndex(index => index === inputIndex);
+            const wasValid = oldIndex !== -1
+
+            if (hasError) {
+                if (wasValid) {
+                    oldValidInputIndexes.splice(oldIndex, 1)
+                }
+            } else {
+                if (!wasValid) {
+                    oldValidInputIndexes.push(inputIndex)
+                }
+            }
+
+            return oldValidInputIndexes
+        })
+    }, [validInputIndexes])
+
+    useEffect(() => {
+        if (validInputIndexes.length === 2 && validInputIndexes.includes(0) && validInputIndexes.includes(1)) {
             setExchangeIsValid(true)
+        } else {
+            setExchangeIsValid(false)
         }
-    }, [exchangeIsValid])
+    }, [validInputIndexes])
 
     // useEffect(() => {
     //     if (ratesApiResponse.success) {
@@ -274,8 +295,21 @@ const ExchangeContainer = () => {
         </div>
 
         {/*  Confirmation button*/}
-        {exchangeIsValid && <button className={confirmationButton} onClick={onExchange}>{title} {topAccount.account.currency} for {bottomAccount.account.currency}</button>}
-        {!exchangeIsValid && <button className={disabledButton} disabled>{title} {topAccount.account.currency} for {bottomAccount.account.currency}</button>}
+        {
+            exchangeIsValid
+                ?
+                <button
+                    className={confirmationButton}
+                    onClick={onExchange}>
+                    {title} {topAccount.account.currency} for {bottomAccount.account.currency}
+                </button>
+                :
+                <button
+                    className={disabledButton}
+                    disabled>
+                    {title} {topAccount.account.currency} for {bottomAccount.account.currency}
+                </button>
+        }
 
     </Fragment>
 }

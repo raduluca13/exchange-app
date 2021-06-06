@@ -11,7 +11,7 @@ export interface CurrencyInputContainerProps {
     account: Account;
     onChangeAccount: (newCurrency: Currency, oldCurrency: Currency) => void;
     onChangeValue: (amount: string, currency: Currency, index: number) => void;
-    onValidation: (hasError: boolean) => void
+    onValidation: (hasError: boolean, inputIndex: number) => void
 }
 
 const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
@@ -71,7 +71,7 @@ const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
 
     useEffect(() => {
         const hasError = inputError !== ''
-        onValidation(hasError);
+        onValidation(hasError, index);
     }, [inputError])
 
     return <div className={currencyInputContainer}>

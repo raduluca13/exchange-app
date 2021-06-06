@@ -6,13 +6,20 @@
 }
 
 
-.currencyInput, .currencyInputLabel {
+.currencyInputWithoutValue, .currencyInputLabelWithoutValue {
     display: block;
     color: rgb(213 213 217);
     font-size: 1rem;
 }
 
-.currencyInput {
+.currencyInputWithValue, .currencyInputLabelWithValue {
+    display: block;
+    color: rgb(0 0 0);
+    font-size: 1rem;
+}
+
+/* TODO - next 2 are duplicated */
+.currencyInputWithoutValue, .currencyInputWithValue {
     /* TODO - remove what is not needed as it s duplicated in dropdown select. should go to a mixin :( add a css preprocessor */
     -webkit-appearance: none;
     -webkit-appearance: none;
