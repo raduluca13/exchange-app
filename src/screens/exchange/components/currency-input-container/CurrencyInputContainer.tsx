@@ -10,12 +10,13 @@ export interface CurrencyInputContainerProps {
     currencies: Currency[];
     account: Account;
     onChangeAccount: (newCurrency: Currency, oldCurrency: Currency) => void;
-    onChangeValue: (amount: string, currency: Currency, index: number) => void
+    onChangeValue: (amount: string, currency: Currency, index: number) => void;
+    onValidation: (hasError: boolean) => void
 }
 
 const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
     const { currencyInputContainer } = styles
-    const { index, currencies, account, onChangeAccount, onChangeValue } = props
+    const { index, currencies, account, onChangeAccount, onChangeValue, onValidation } = props
 
     const amountMemo = useMemo(() => account.amount, [account.amount])
     const inputMemo = useMemo(() => {
@@ -50,7 +51,7 @@ const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
         if (!hasDelimiter || hasDelimiterOnlyOnLastPosition || maxTwoDigits) {
             onChangeValue(stringValue, inputMemo.currency, index)
             if (+amountMemo < numberValue && inputMemo.adjustmentType === AdjustmentType.NEGATIVE) {
-                setInputError('Amount exceeded')
+                setInputError('exceeds balance')
             } else {
                 setInputError('')
             }
@@ -64,9 +65,14 @@ const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
         }
 
         if (inputMemo.adjustmentType === AdjustmentType.NEGATIVE && +inputMemo.adjustment > +amountMemo) {
-            setInputError('Amount exceeded');
+            setInputError('exceeds balance');
         }
     }, [inputMemo, amountMemo])
+
+    useEffect(() => {
+        const hasError = inputError !== ''
+        onValidation(hasError);
+    }, [inputError])
 
     return <div className={currencyInputContainer}>
         <CurrencyDropdown

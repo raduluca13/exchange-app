@@ -91,10 +91,10 @@ const initialResponse = {
 const ExchangeContainer = () => {
     // console.log(' - Exchange Container RENDERED - ', Date.now())
     // const { ExchangeContextProvider, ExchangeContextConsumer } = createContext({})
-    const { inputsContainer, confirmationButton, currencyToggler, svg, h3 } = styles
+    const { inputsContainer, confirmationButton, disabledButton, currencyToggler, svg, h3 } = styles
     const [liveFeed, setLiveFeed] = useState('') // TODO
     const [ratesApiResponse, setRatesApiResponse] = useState(initialResponse)
-
+    const [exchangeIsValid, setExchangeIsValid] = useState(true) // let's say exchanging amount 0 is ok for now
 
     const [title, setTitle] = useState<ExchangeType>(initialExchange.type)
     const [arrowDirection, setArrowDirection] = useState<ArrowDirection>(initialExchange.direction)
@@ -212,6 +212,14 @@ const ExchangeContainer = () => {
         })
     }, [accounts])
 
+    const onValidationResult = useCallback((hasError: boolean) => {
+        if(hasError){
+            setExchangeIsValid(false);
+        } else {
+            setExchangeIsValid(true)
+        }
+    }, [exchangeIsValid])
+
     // useEffect(() => {
     //     if (ratesApiResponse.success) {
     //         setAccounts(accounts => {
@@ -255,18 +263,20 @@ const ExchangeContainer = () => {
 
 
         <div className={inputsContainer}>
-            <CurrencyInputContainer index={0} {...topAccount} onChangeAccount={onChangeAccount} onChangeValue={onChangeValue} />
+            <CurrencyInputContainer index={0} {...topAccount} onChangeAccount={onChangeAccount} onChangeValue={onChangeValue} onValidation={onValidationResult} />
 
             <div className={currencyToggler} onClick={toggleArrow}>
                 {(arrowDirection === ArrowDirection.DOWN) && <ArrowDownwardIcon color="primary"></ArrowDownwardIcon>}
                 {(arrowDirection === ArrowDirection.UP) && <ArrowUpwardIcon color="primary"></ArrowUpwardIcon>}
             </div>
 
-            <CurrencyInputContainer index={1} {...bottomAccount} onChangeAccount={onChangeAccount} onChangeValue={onChangeValue} />
+            <CurrencyInputContainer index={1} {...bottomAccount} onChangeAccount={onChangeAccount} onChangeValue={onChangeValue} onValidation={onValidationResult} />
         </div>
 
         {/*  Confirmation button*/}
-        <button className={confirmationButton} onClick={onExchange}>{title} {topAccount.account.currency} for {bottomAccount.account.currency}</button>
+        {exchangeIsValid && <button className={confirmationButton} onClick={onExchange}>{title} {topAccount.account.currency} for {bottomAccount.account.currency}</button>}
+        {!exchangeIsValid && <button className={disabledButton} disabled>{title} {topAccount.account.currency} for {bottomAccount.account.currency}</button>}
+
     </Fragment>
 }
 

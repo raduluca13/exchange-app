@@ -19,13 +19,17 @@
 .currencyDropdown {
     background-color: rgb(255 255 254);
     position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
 }
   
 /*To remove button from IE11, thank you Matt */
 select::-ms-expand {
     display: none;
 }
-
+/* 
 .currencyDropdown:after {
     content: '>';
     font: 1rem "Consolas", monospace;
@@ -35,9 +39,18 @@ select::-ms-expand {
     -ms-transform: rotate(90deg);
     transform: rotate(90deg);
     
+    height: 100%;
     margin-left: 0.75rem;
     margin-top: 1rem;
     position: absolute;
+    pointer-events: none;   
+} */
+
+.currencyDropdownIcon {
+    font: 1rem "Consolas", monospace;
+    color: blue;
+    height: 100%;
+    margin-top: 1.5rem;
     pointer-events: none;
 }
 

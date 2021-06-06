@@ -8,7 +8,8 @@
     gap: 2rem;
 }
 
-.confirmationButton {
+/* TODO - next 2 are duplicated */
+.disabledButton {
     min-height: 2rem;
     width: 100%;
     margin-top: 1rem;
@@ -18,6 +19,19 @@
     border-radius: 1.5rem;
     background-color: rgb(193 217 250); /*for disabled*/
     color: rgb(223 235 252);
+    font-size: 1rem;
+}
+
+.confirmationButton {
+    min-height: 2rem;
+    width: 100%;
+    margin-top: 1rem;
+
+    outline: none;
+    border: none;
+    border-radius: 1.5rem;
+    background-color: #0665eb;
+    color: #bed8e3;
     font-size: 1rem;
 }
 
