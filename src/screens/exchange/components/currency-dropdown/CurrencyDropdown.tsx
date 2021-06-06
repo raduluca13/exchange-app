@@ -15,7 +15,9 @@ const CurrencyDropdown = (props: CurrencyDropdownProps) => {
 
     useEffect(() => {
         if (currencies.length) {
-            const currencyOptions = currencies.map((currency, index) => <option value={currency} key={index + currency}> {currency} </option>)
+            const currencyOptions = currencies.map((currency, index) => <option value={currency} key={index + currency}>
+                {currency} 
+            </option>)
             setDropdownOptions(currencyOptions)
         }
     }, [currencies])

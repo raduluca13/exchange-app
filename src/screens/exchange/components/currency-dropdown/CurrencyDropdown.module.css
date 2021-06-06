@@ -34,11 +34,9 @@ select::-ms-expand {
     -moz-transform: rotate(90deg);
     -ms-transform: rotate(90deg);
     transform: rotate(90deg);
-    left: 50%;
-    /*Adjust for position however you want*/
-
-    top: 1rem;
-
+    
+    margin-left: 0.75rem;
+    margin-top: 1rem;
     position: absolute;
     pointer-events: none;
 }
@@ -53,7 +51,7 @@ select::-ms-expand {
     /* Add some styling */
 
     display: block;
-    width: 100%;
+    /* width: 100%; */
     height: 100%;
   
     float: left;
