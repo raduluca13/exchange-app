@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import CurrencyBalance from '../currency-balance/CurrencyBalance'
 import CurrencyDropdown from '../currency-dropdown/CurrencyDropdown'
 import CurrencyInput from '../currency-input/CurrencyInput'
@@ -57,6 +57,16 @@ const CurrencyInputContainer = (props: CurrencyInputContainerProps) => {
             return
         }
     }, [amountMemo, inputMemo])
+
+    useEffect(() => {
+        if (inputMemo.adjustmentType === AdjustmentType.POSITIVE) {
+            setInputError('')
+        }
+
+        if (inputMemo.adjustmentType === AdjustmentType.NEGATIVE && +inputMemo.adjustment > +amountMemo) {
+            setInputError('Amount exceeded');
+        }
+    }, [inputMemo, amountMemo])
 
     return <div className={currencyInputContainer}>
         <CurrencyDropdown

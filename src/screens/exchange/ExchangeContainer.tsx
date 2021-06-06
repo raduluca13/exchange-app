@@ -180,7 +180,7 @@ const ExchangeContainer = () => {
 
             const mappedAccounts = accounts.map((account, index) => {
                 if (index === oldCurrencyIndex && oldCurrencyIndex !== newCurrencyIndex) {
-                    return { ...account, adjustmentType: AdjustmentType.NEUTRAL }
+                    return { ...account, adjustmentType: AdjustmentType.NEUTRAL, adjustment: '' }
                 }
 
                 if (index === newCurrencyIndex) {
