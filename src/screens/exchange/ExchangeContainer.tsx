@@ -88,8 +88,6 @@ const initialResponse = {
     timestamp: 0
 }
 
-
-
 const ExchangeContainer = () => {
     // console.log(' - Exchange Container RENDERED - ', Date.now())
     // const { ExchangeContextProvider, ExchangeContextConsumer } = createContext({})
@@ -193,6 +191,27 @@ const ExchangeContainer = () => {
         })
     }, [])
 
+    const onExchange = useCallback(() => {
+        setAccounts(accounts => {
+            return accounts.map(account => {
+                if (account.adjustmentType === AdjustmentType.NEGATIVE) {
+                    const oldAmount = +account.amount
+                    const adjustment = +account.adjustment
+                    return { ...account, amount: (oldAmount - adjustment).toString(), adjustment: '' }
+                }
+
+                if (account.adjustmentType === AdjustmentType.POSITIVE) {
+                    const oldAmount = +account.amount
+                    const adjustment = +account.adjustment
+                    return { ...account, amount: (oldAmount + adjustment).toString(), adjustment: '' }
+
+                }
+
+                return { ...account }
+            })
+        })
+    }, [accounts])
+
     // useEffect(() => {
     //     if (ratesApiResponse.success) {
     //         setAccounts(accounts => {
@@ -247,7 +266,7 @@ const ExchangeContainer = () => {
         </div>
 
         {/*  Confirmation button*/}
-        <button className={confirmationButton} onClick={() => { }}>{title} {topAccount.account.currency} for {bottomAccount.account.currency}</button>
+        <button className={confirmationButton} onClick={onExchange}>{title} {topAccount.account.currency} for {bottomAccount.account.currency}</button>
     </Fragment>
 }
 
