@@ -1,31 +1,31 @@
-import React, { useState, useEffect, ChangeEventHandler } from 'react';
-import { Currency } from '../../ExchangeContainer';
+import { ChangeEventHandler, memo } from 'react';
 import styles from './CurrencyDropdown.module.css';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import { Currency } from '../../../../models/enums/Currency.enum';
+
 export interface CurrencyDropdownProps {
     currencies: Currency[];
     selectedValue: string;
     onChangeSelection: ChangeEventHandler<HTMLSelectElement>
 }
 
-const CurrencyDropdown = (props: CurrencyDropdownProps) => {
-    const { currencyDropdown, currencyDropdownIcon } = styles
-    const { currencies, onChangeSelection, selectedValue } = props
-    const [dropdownOptions, setDropdownOptions] = useState<JSX.Element[]>([])
+const { currencyDropdown, currencyDropdownIcon } = styles
 
-    useEffect(() => {
-        if (currencies.length) {
-            const currencyOptions = currencies.map((currency, index) => <option value={currency} key={index + currency}>
+const CurrencyDropdown = (props: CurrencyDropdownProps) => {
+    const { currencies, onChangeSelection, selectedValue } = props
+
+    const createDropdownOptions = () => {
+        return currencies.map((currency, index) =>
+            <option value={currency} key={index + currency}>
                 {currency}
-            </option>)
-            setDropdownOptions(currencyOptions)
-        }
-    }, [currencies])
+            </option>
+        )
+    }
 
     return (
         <div className={currencyDropdown}>
             <select value={selectedValue} onChange={onChangeSelection}>
-                {dropdownOptions}
+                {createDropdownOptions()}
             </select>
             <div className={currencyDropdownIcon}>
                 <KeyboardArrowDownIcon></KeyboardArrowDownIcon>
@@ -35,4 +35,4 @@ const CurrencyDropdown = (props: CurrencyDropdownProps) => {
 }
 
 
-export default CurrencyDropdown
+export default memo(CurrencyDropdown)

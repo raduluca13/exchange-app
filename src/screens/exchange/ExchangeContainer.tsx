@@ -1,150 +1,87 @@
-import React, { Fragment, useState, useCallback, useEffect, createContext, useMemo } from 'react';
-import CurrencyInputContainer, { } from './components/currency-input-container/CurrencyInputContainer';
-import CurrencyInput from './components/currency-input/CurrencyInput';
+import { Fragment, useState, useEffect } from 'react';
+import CurrencyInputContainer from './components/currency-input-container/CurrencyInputContainer';
 import styles from './ExchangeContainer.module.css';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-
+import {
+    findAccountByAdjustmentType,
+    getAccountsToRender,
+    updateAccountsOnAdjustAmount,
+    updateAccountsOnChangeCurrency,
+    updateAccountsOnExchangeFinished,
+    updateAccountsOnToggle
+} from './accountsHelper';
+import { Account } from '../../models/interfaces/Account.interface';
+import { Currency } from '../../models/enums/Currency.enum';
+import { AdjustmentType } from '../../models/enums/AdjustmentType.enum';
+import { ExchangeType } from '../../models/enums/ExchangeType.enum';
+import { ArrowDirection } from '../../models/enums/ArrowDirection.enum';
+import {
+    getInitialExchangeRatesMock,
+    getInitialExchangeTypeMock,
+    getInitialAccountsMock,
+    getCurrenciesMock
+} from '../../test-fakes/fakes';
+import { InputPositionErrorMap } from '../../models/types/InputPositionErrorMap.type';
+import { InputPosition } from '../../models/enums/InputPosition.enum';
 
 const FIXER_IO_API = 'http://data.fixer.io/api/latest'
 const FIXER_IO_API_KEY = 'd9acfabb4baf13aab8883a8d13c8de89'
 
-export type CurrencyRates = Record<Currency, number>;
-
-export interface RatesApiResponse {
-    base: Currency;
-    date: string;
-    rates: CurrencyRates;
-    success: boolean;
-    timestamp: number;
-}
-
-export interface Account {
-    currency: Currency;
-    amount: string,
-    adjustment: string,
-    adjustmentType?: AdjustmentType
-}
-
-export interface CurrencyContainerInput {
-    currencies: Currency[];
-    account: Account;
-}
-
-export enum AdjustmentType {
-    POSITIVE = 'POSITIVE',
-    NEGATIVE = 'NEGATIVE',
-    NEUTRAL = 'NEUTRAL' // TESTING PURPOSE - TODO - remove at cleanup
-}
-export enum ArrowDirection {
-    UP = 'UP',
-    DOWN = 'DOWN'
-}
-
-export enum ExchangeType {
-    BUY = 'BUY',
-    SELL = 'SELL'
-}
-
-export enum Currency {
-    RON = 'RON',
-    EUR = 'EUR',
-    GBP = 'GBP',
-    USD = 'USD'
-}
-
-
-// TODO - don't really care about types. this mock should be replaced at a later moment; keep in sync with initialStateBalances
-const initialStateCurrencies = [
-    Currency.RON,
-    Currency.EUR,
-    Currency.GBP,
-    Currency.USD
-]
-const initialStateBalances = [
-    { currency: Currency.RON, amount: '1000', adjustment: '', adjustmentType: AdjustmentType.POSITIVE },
-    { currency: Currency.EUR, amount: '2000', adjustment: '', adjustmentType: AdjustmentType.NEGATIVE },
-    { currency: Currency.GBP, amount: '3000', adjustment: '', adjustmentType: AdjustmentType.NEUTRAL },
-    { currency: Currency.USD, amount: '4000', adjustment: '', adjustmentType: AdjustmentType.NEUTRAL },
-]
-const initialCurrencyAdjustments = {
-    positiveAdjustedCurrency: Currency.RON,
-    negativeAdjustedCurrency: Currency.EUR
-}
-const initialExchange = {
-    type: ExchangeType.SELL,
-    direction: ArrowDirection.DOWN
-}
-const initialResponse = {
-    base: Currency.EUR,
-    date: '',
-    rates: {
-        [Currency.RON]: 2,
-        [Currency.USD]: 3,
-        [Currency.GBP]: 4,
-        [Currency.EUR]: 1
-    },
-    success: false,
-    timestamp: 0
-}
+// TODO - don't really care about types. this mock should be replaced at a later moment; keep in sync with initialAccounts
+const initialStateCurrencies = getCurrenciesMock()
+const initialAccounts = getInitialAccountsMock()
+const initialExchange = getInitialExchangeTypeMock()
+const initialResponse = getInitialExchangeRatesMock()
+const { inputsContainer, confirmationButton, disabledButton, currencyToggler, svg, h3 } = styles
 
 const ExchangeContainer = () => {
     // console.log(' - Exchange Container RENDERED - ', Date.now())
     // const { ExchangeContextProvider, ExchangeContextConsumer } = createContext({})
-    const { inputsContainer, confirmationButton, disabledButton, currencyToggler, svg, h3 } = styles
     const [liveFeed, setLiveFeed] = useState('') // TODO
     const [ratesApiResponse, setRatesApiResponse] = useState(initialResponse)
-    const [exchangeIsValid, setExchangeIsValid] = useState(true) // let's say exchanging amount 0 is ok for now
+    const [exchangeIsValid, setExchangeIsValid] = useState(false) // let's say exchanging amount 0 is ok for now
 
     const [title, setTitle] = useState<ExchangeType>(initialExchange.type)
     const [arrowDirection, setArrowDirection] = useState<ArrowDirection>(initialExchange.direction)
     const [currencies, setCurrencies] = useState<Currency[]>(initialStateCurrencies)
-    const [accounts, setAccounts] = useState<Account[]>(initialStateBalances)
-    const [validInputIndexes, setValidInputIndexes] = useState([0, 1]);
+    const [accounts, setAccounts] = useState<Account[]>(initialAccounts)
+    const [errorMap, setErrorMap] = useState<InputPositionErrorMap>({
+        [InputPosition.TOP]: true,
+        [InputPosition.BOTTOM]: true
+    })
 
-    const ratesFetcher = async () => {
-        // console.log('- calling API -', Date.now())
-        const wantedCurrencies = Object.keys(Currency).join(',')
-        const url = `${FIXER_IO_API}?access_key=${FIXER_IO_API_KEY}&symbols=${wantedCurrencies}`
-        const response = await fetch(url)
-        const json = await response.json();
-        setRatesApiResponse(json);
+    // rates reload.... TODO - api limit reached :(
+    // const ratesFetcher = async () => {
+    //     // console.log('- calling API -', Date.now())
+    //     const wantedCurrencies = Object.keys(Currency).join(',')
+    //     const url = `${FIXER_IO_API}?access_key=${FIXER_IO_API_KEY}&symbols=${wantedCurrencies}`
+    //     const response = await fetch(url)
+    //     const json = await response.json();
+    //     setRatesApiResponse(json);
+    // }
+
+    // useEffect(() => {
+    //     ratesFetcher();
+    //     let interval = setInterval(() => ratesFetcher(), (1000 * 10))
+    //     //destroy interval on unmount
+    //     return () => clearInterval(interval)
+    // }, [])
+
+    const onAdjustAmount = (amount: string, selectedCurrency: Currency) => {
+        setAccounts(updateAccountsOnAdjustAmount(accounts, amount, selectedCurrency, ratesApiResponse))
     }
 
+    const onChangeAccount = (newCurrency: Currency, oldCurrency: Currency) => {
+        setAccounts(updateAccountsOnChangeCurrency(accounts, newCurrency, oldCurrency, ratesApiResponse))
+    }
 
-    useEffect(() => {
-        ratesFetcher();
-        let interval = setInterval(() => ratesFetcher(), (1000 * 10))
-        // console.log('interval descriptor: ', interval)
-        //destroy interval on unmount
-        return () => clearInterval(interval)
-    }, [])
+    const onExchange = () => {
+        const newAccounts = updateAccountsOnExchangeFinished(accounts)
+        setAccounts(newAccounts)
+    }
 
-    const onChangeValue = useCallback((amount: string, selectedCurrency: Currency, changed: number) => {
-        setAccounts(accounts => {
-            return accounts.map(account => {
-                const accountCurrency = account.currency;
-                if (account.adjustmentType !== AdjustmentType.NEUTRAL) {
-                    if (accountCurrency === selectedCurrency) {
-                        return { ...account, adjustment: amount }
-                    } else {
-                        const isBase = ratesApiResponse.base === accountCurrency
-
-                        const exchangeRate = isBase
-                            ? 1 / ratesApiResponse.rates[selectedCurrency]
-                            : ratesApiResponse.rates[accountCurrency]
-                        return { ...account, adjustment: (+amount * exchangeRate).toString() }
-
-                    }
-                }
-
-                return { ...account }
-            })
-        })
-
-    }, [ratesApiResponse])
-
-    const toggleArrow = useCallback(() => {
+    const toggleArrow = () => {
         if (arrowDirection === ArrowDirection.UP) {
             setArrowDirection(ArrowDirection.DOWN)
             setTitle(ExchangeType.SELL)
@@ -153,126 +90,25 @@ const ExchangeContainer = () => {
             setTitle(ExchangeType.BUY)
         }
 
-        setAccounts(accounts => {
-            const mapped = accounts.map(account => {
-                if (account.adjustmentType === AdjustmentType.NEGATIVE) {
-                    return { ...account, adjustmentType: AdjustmentType.POSITIVE }
-                }
+        const newAccounts = updateAccountsOnToggle(accounts)
+        setAccounts(newAccounts)
+    }
 
-                if (account.adjustmentType === AdjustmentType.POSITIVE) {
-                    return { ...account, adjustmentType: AdjustmentType.NEGATIVE }
 
-                }
 
-                return { ...account }
-            })
-
-            return mapped
-        })
-    }, [arrowDirection])
-
-    const onChangeAccount = useCallback((newCurrency: Currency, oldCurrency: Currency) => {
-        setAccounts(accounts => {
-            const oldCurrencyIndex = accounts.findIndex(account => account.currency === oldCurrency)
-            const newCurrencyIndex = accounts.findIndex(account => account.currency === newCurrency)
-            const oldCurrencyState = accounts[oldCurrencyIndex].adjustmentType
-
-            const mappedAccounts = accounts.map((account, index) => {
-                if (index === oldCurrencyIndex && oldCurrencyIndex !== newCurrencyIndex) {
-                    return { ...account, adjustmentType: AdjustmentType.NEUTRAL, adjustment: '' }
-                }
-
-                if (index === newCurrencyIndex) {
-                    return { ...account, adjustmentType: oldCurrencyState }
-                }
-
-                return { ...account }
-            })
-            return mappedAccounts
-        })
-    }, [])
-
-    const onExchange = useCallback(() => {
-        setAccounts(accounts => {
-            return accounts.map(account => {
-                if (account.adjustmentType === AdjustmentType.NEGATIVE) {
-                    const oldAmount = +account.amount
-                    const adjustment = +account.adjustment
-                    return { ...account, amount: (oldAmount - adjustment).toString(), adjustment: '' }
-                }
-
-                if (account.adjustmentType === AdjustmentType.POSITIVE) {
-                    const oldAmount = +account.amount
-                    const adjustment = +account.adjustment
-                    return { ...account, amount: (oldAmount + adjustment).toString(), adjustment: '' }
-
-                }
-
-                return { ...account }
-            })
-        })
-    }, [accounts])
-
-    const onValidationResult = useCallback((hasError: boolean, inputIndex: number) => {
-        setValidInputIndexes(validInputIndexes => {
-            const oldValidInputIndexes = [...validInputIndexes]
-            const oldIndex = oldValidInputIndexes.findIndex(index => index === inputIndex);
-            const wasValid = oldIndex !== -1
-
-            if (hasError) {
-                if (wasValid) {
-                    oldValidInputIndexes.splice(oldIndex, 1)
-                }
-            } else {
-                if (!wasValid) {
-                    oldValidInputIndexes.push(inputIndex)
-                }
-            }
-
-            return oldValidInputIndexes
-        })
-    }, [validInputIndexes])
+    const onValidation = (hasError: boolean, inputPosition: InputPosition) => {
+        const newErrorMap = { ...errorMap, [inputPosition]: hasError }
+        setErrorMap(newErrorMap)
+    }
 
     useEffect(() => {
-        if (validInputIndexes.length === 2 && validInputIndexes.includes(0) && validInputIndexes.includes(1)) {
-            setExchangeIsValid(true)
-        } else {
-            setExchangeIsValid(false)
-        }
-    }, [validInputIndexes])
+        const hasSomeErr = accounts.map(account => !account.inputError.length).includes(false)
+        setExchangeIsValid(!hasSomeErr)
+    }, [accounts])
 
-    // useEffect(() => {
-    //     if (ratesApiResponse.success) {
-    //         setAccounts(accounts => {
-    //             return accounts.map(account => {
-    //                 const accountCurrency = account.currency
-    //                 if (accountCurrency !== ratesApiResponse.base && account.adjustmentType !== AdjustmentType.NEUTRAL) {
-    //                     const exchangeRate = ratesApiResponse.rates[accountCurrency]
-    //                     const oldAdjustment = account.adjustment
-    //                     return { ...account, adjustment: (+oldAdjustment * exchangeRate).toString() }
-    //                 }
+    const { topAccount, bottomAccount } = getAccountsToRender(accounts, currencies, title)
 
-    //                 return { ...account }
-    //             })
-    //         })
-    //     }
-    // }, [ratesApiResponse])
-
-
-    const negativeAdjustingAccount = { ...accounts[accounts.findIndex(account => account.adjustmentType === AdjustmentType.NEGATIVE)] }
-    const positiveAdjustingAccount = { ...accounts[accounts.findIndex(account => account.adjustmentType === AdjustmentType.POSITIVE)] }
-    const currenciesWithoutNegative = currencies.filter(currency => currency !== negativeAdjustingAccount.currency)
-    const currenciesWithoutPositive = currencies.filter(currency => currency !== positiveAdjustingAccount.currency)
-
-    const isSelling = title === ExchangeType.SELL
-
-    const topAccount = isSelling
-        ? { account: negativeAdjustingAccount, currencies: currenciesWithoutPositive }
-        : { account: positiveAdjustingAccount, currencies: currenciesWithoutNegative }
-
-    const bottomAccount = isSelling
-        ? { account: positiveAdjustingAccount, currencies: currenciesWithoutNegative }
-        : { account: negativeAdjustingAccount, currencies: currenciesWithoutPositive }
+    // TODO - return objects from
 
     return <Fragment>
         {/* TITLE: SELL / BUY */}
@@ -284,14 +120,24 @@ const ExchangeContainer = () => {
 
 
         <div className={inputsContainer}>
-            <CurrencyInputContainer index={0} {...topAccount} onChangeAccount={onChangeAccount} onChangeValue={onChangeValue} onValidation={onValidationResult} />
+            <CurrencyInputContainer
+                inputPosition={InputPosition.TOP}
+                {...topAccount}
+                onChangeAccount={onChangeAccount}
+                onAdjustAmount={onAdjustAmount}
+                onValidation={onValidation} />
 
             <div className={currencyToggler} onClick={toggleArrow}>
                 {(arrowDirection === ArrowDirection.DOWN) && <ArrowDownwardIcon color="primary"></ArrowDownwardIcon>}
                 {(arrowDirection === ArrowDirection.UP) && <ArrowUpwardIcon color="primary"></ArrowUpwardIcon>}
             </div>
 
-            <CurrencyInputContainer index={1} {...bottomAccount} onChangeAccount={onChangeAccount} onChangeValue={onChangeValue} onValidation={onValidationResult} />
+            <CurrencyInputContainer
+                inputPosition={InputPosition.BOTTOM}
+                {...bottomAccount}
+                onChangeAccount={onChangeAccount}
+                onAdjustAmount={onAdjustAmount}
+                onValidation={onValidation} />
         </div>
 
         {/*  Confirmation button*/}

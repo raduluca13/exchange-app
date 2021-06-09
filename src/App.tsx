@@ -1,9 +1,9 @@
-import React from 'react';
 import styles from './App.module.css';
 import ExchangeContainer from './screens/exchange/ExchangeContainer';
 
+const { app, appHeader, mainSection } = styles
+
 const App = () => {
-  const { app, appHeader, mainSection } = styles
   const title = 'Exchange App';
 
   return (

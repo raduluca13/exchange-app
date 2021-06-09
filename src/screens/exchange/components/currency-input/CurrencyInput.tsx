@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, useCallback } from 'react';
+import { ChangeEventHandler, memo } from 'react';
 import styles from './CurrencyInput.module.css'
 
 export interface CurrencyInputProps {
@@ -8,8 +8,9 @@ export interface CurrencyInputProps {
     onChangeAmount: ChangeEventHandler<HTMLInputElement>
 }
 
+const { currencyInputContainer, currencyInputWithoutValue, currencyInputWithValue, currencyInputLabelWithValue, currencyInputLabelWithoutValue, currencyInputError, currencyInputTopRow, currencyInputBottomRow } = styles
+
 const CurrencyInput = (props: CurrencyInputProps) => {
-    const { currencyInputContainer, currencyInputWithoutValue, currencyInputWithValue, currencyInputLabelWithValue, currencyInputLabelWithoutValue, currencyInputError, currencyInputTopRow, currencyInputBottomRow } = styles
     const { error, selectedCurrencyLabel, selectedValue, onChangeAmount } = props
 
     return <div className={currencyInputContainer}>
@@ -35,4 +36,4 @@ const CurrencyInput = (props: CurrencyInputProps) => {
     </div>
 }
 
-export default CurrencyInput
+export default memo(CurrencyInput)

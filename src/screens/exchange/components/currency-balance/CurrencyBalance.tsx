@@ -1,29 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Account, AdjustmentType } from '../../ExchangeContainer';
-
+import { memo } from 'react';
+import { AdjustmentType } from '../../../../models/enums/AdjustmentType.enum';
+import { Account } from '../../../../models/interfaces/Account.interface';
 import styles from './CurrencyBalance.module.css'
 
+const { currencyBalanceContainer, currencyBalance } = styles
 
+// TODO - should be renamed to something like AccountSummaryExchangeView
 const CurrencyBalance = (props: Account) => {
-    const { currencyBalanceContainer, currencyBalance } = styles
     const { amount, currency, adjustment, adjustmentType } = props
-
-    const [adjustmentSign, setAdjustmentSign] = useState('')
-
-    useEffect(() => {
-        if (adjustmentType === AdjustmentType.NEGATIVE) {
-            setAdjustmentSign("-")
-        }
-        if (adjustmentType === AdjustmentType.POSITIVE) {
-            setAdjustmentSign("+")
-        }
-    }, [adjustmentType])
-
+    const positiveAdjustmentSign = adjustmentType === AdjustmentType.POSITIVE
+    const displayValue = `${amount} ${currency} ${positiveAdjustmentSign ? "+" : "-"} ${adjustment}`
 
     return <div className={currencyBalanceContainer}>
-        <span className={currencyBalance}>{amount} {currency} {adjustmentSign} {adjustment}</span>
+        <span className={currencyBalance}>{displayValue}</span>
     </div>
 }
 
 
-export default CurrencyBalance
+export default memo(CurrencyBalance)
